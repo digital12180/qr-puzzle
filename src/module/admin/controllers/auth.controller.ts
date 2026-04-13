@@ -10,7 +10,7 @@ import { APIResponse } from '../../../utils/apiResponse.js';
 
 export class AdminAuthController {
     private service = new AdminService();
-    async login(req: Request, res: Response) {
+    async login(req: Request, res: Response, next: NextFunction) {
         try {
             const { email, password } = req.body;
 
@@ -29,9 +29,10 @@ export class AdminAuthController {
             const token = await generateToken(admin._id, admin.email);
             return res.json({ token, admin: { email: admin.email, role: admin.role } });
         } catch (error) {
-            console.log(error);
+            // console.log(error);
 
-            return res.status(500).json({ message: 'Login failed', error });
+            // return res.status(500).json({ message: 'Login failed', error });
+            next(error)
         }
     }
 

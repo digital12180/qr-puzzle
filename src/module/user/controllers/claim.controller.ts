@@ -1,4 +1,4 @@
-import type{ Request, Response } from 'express';
+import type{ Request, Response,NextFunction } from 'express';
 import { Claim } from '../../../models/Claim.model.js';
 import { Puzzle } from '../../../models/Puzzle.model.js';
 import { Reward } from '../../../models/Reward.model.js';
@@ -6,7 +6,7 @@ import { ValidationService } from '../../../services/validation.service.js';
 import { v4 as uuidv4 } from 'uuid';
 
 export class UserClaimController {
-    static async claimReward(req: Request, res: Response) {
+    static async claimReward(req: Request, res: Response, next: NextFunction) {
         try {
             const { puzzle_id, user_device_id } = req.body;
             
@@ -41,11 +41,12 @@ export class UserClaimController {
                 message: 'Reward claimed successfully!'
             });
         } catch (error) {
-            res.status(500).json({ message: 'Claim failed', error });
+            // res.status(500).json({ message: 'Claim failed', error });
+            next(error)
         }
     }
 
-    static async checkClaimStatus(req: Request, res: Response) {
+    static async checkClaimStatus(req: Request, res: Response, next: NextFunction) {
         try {
             const { puzzle_id } = req.params;
             
@@ -62,7 +63,8 @@ export class UserClaimController {
                 status: claim.redemption_status
             });
         } catch (error) {
-            res.status(500).json({ message: 'Failed to check claim status', error });
+            // res.status(500).json({ message: 'Failed to check claim status', error });
+            next(error)
         }
     }
 }
