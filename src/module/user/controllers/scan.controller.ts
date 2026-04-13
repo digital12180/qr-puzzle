@@ -1,8 +1,8 @@
-import type{ Request, Response } from 'express';
+import type{ Request, Response ,NextFunction} from 'express';
 import { ValidationService } from '../../../services/validation.service.js';
 
 export class UserScanController {
-    static async scanQRCode(req: Request, res: Response) {
+    static async scanQRCode(req: Request, res: Response, next: NextFunction) {
         try {
             const { qr_text } = req.body;
             
@@ -21,11 +21,12 @@ export class UserScanController {
                 message: 'QR code valid. Proceed to claim reward.'
             });
         } catch (error) {
-            res.status(500).json({ message: 'Scan failed', error });
+            // res.status(500).json({ message: 'Scan failed', error });
+            next(error)
         }
     }
 
-    static async validateScannedPuzzle(req: Request, res: Response) {
+    static async validateScannedPuzzle(req: Request, res: Response, next: NextFunction) {
         try {
             const { puzzle_id } = req.params;
             
@@ -33,7 +34,8 @@ export class UserScanController {
             
             res.json(validation);
         } catch (error) {
-            res.status(500).json({ message: 'Validation failed', error });
+            // res.status(500).json({ message: 'Validation failed', error });
+            next(error)
         }
     }
 }

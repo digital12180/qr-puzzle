@@ -1,7 +1,7 @@
 // src/controllers/admin/puzzle.controller.ts (updated)
 
 
-import type { Request, Response } from 'express';
+import type { Request, Response,NextFunction } from 'express';
 import { Puzzle } from '../../../models/Puzzle.model.js';
 import { Reward } from '../../../models/Reward.model.js';
 import { QRService } from '../../../services/qr.service.js';
@@ -64,7 +64,7 @@ export class AdminPuzzleController {
     //     }
     // }
 
-    static async createPuzzleWithReward(req: Request, res: Response) {
+    static async createPuzzleWithReward(req: Request, res: Response, next: NextFunction) {
         try {
             const { reward_type, reward_value, terms, expiry_days, difficulty } = req.body;
 
@@ -122,21 +122,23 @@ export class AdminPuzzleController {
 
         } catch (error) {
             console.log(error);
-            res.status(500).json({ message: 'Failed to create puzzle', error });
+            // res.status(500).json({ message: 'Failed to create puzzle', error });
+            next(error)
         }
     }
 
 
-    static async listAllPuzzles(req: Request, res: Response) {
+    static async listAllPuzzles(req: Request, res: Response, next: NextFunction) {
         try {
             const puzzles = await Puzzle.find().sort({ created_at: -1 });
             res.json(puzzles);
         } catch (error) {
-            res.status(500).json({ message: 'Failed to fetch puzzles', error });
+            // res.status(500).json({ message: 'Failed to fetch puzzles', error });
+            next(error)
         }
     }
 
-    static async updatePuzzleStatus(req: Request, res: Response) {
+    static async updatePuzzleStatus(req: Request, res: Response, next: NextFunction) {
         try {
             const { id } = req.params;
             const { status } = req.body;
@@ -153,7 +155,8 @@ export class AdminPuzzleController {
 
             res.json(puzzle);
         } catch (error) {
-            res.status(500).json({ message: 'Failed to update puzzle', error });
+            // res.status(500).json({ message: 'Failed to update puzzle', error });
+            next(error)
         }
     }
 }

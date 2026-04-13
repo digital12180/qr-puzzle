@@ -1,10 +1,10 @@
-import type { Request, Response } from 'express';
+import type { Request, Response ,NextFunction } from 'express';
 import { Puzzle } from '../../../models/Puzzle.model.js';
 import { Claim } from '../../../models/Claim.model.js';
 import { Reward } from '../../../models/Reward.model.js';
 
 export class AdminAnalyticsController {
-    static async getAnalytics(req: Request, res: Response) {
+    static async getAnalytics(req: Request, res: Response, next: NextFunction) {
         try {
             const totalPuzzles = await Puzzle.countDocuments();
             const totalClaims = await Claim.countDocuments();
@@ -35,7 +35,8 @@ export class AdminAnalyticsController {
                 claims_by_reward_type: claimsByRewardType
             });
         } catch (error) {
-            res.status(500).json({ message: 'Failed to fetch analytics', error });
+            // res.status(500).json({ message: 'Failed to fetch analytics', error });
+            next(error)
         }
     }
 }
