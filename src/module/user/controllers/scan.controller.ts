@@ -29,7 +29,7 @@ export class UserScanController {
         try {
             const { puzzle_id } = req.params;
             
-            const validation = await ValidationService.validateQRCode(puzzle_id);
+            const validation = await ValidationService.validateQRCode(puzzle_id as string);
             
             res.json(validation);
         } catch (error) {

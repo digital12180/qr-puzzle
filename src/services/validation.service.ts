@@ -13,7 +13,7 @@ export class ValidationService {
             return { valid: false, message: 'Invalid QR code' };
         }
 
-        if (puzzle.getExpiryDate() < new Date()) {
+        if (puzzle.created_at < new Date()) {
             return { valid: false, message: 'QR code expired' };
         }
 
