@@ -18,6 +18,8 @@ const app = express();
 //   crossOriginEmbedderPolicy: false,
 // }))
 const allowedOrigins = [
+  'https://qr-puzzle-pi.vercel.app',
+  'http://localhost:5173',
   '*'
 ];
 
