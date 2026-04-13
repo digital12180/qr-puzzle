@@ -14,7 +14,7 @@ export class UserRewardController {
                 return res.status(404).json({ message: 'Reward not found' });
             }
 
-            if (puzzle.getExpiryDate() < new Date()) {
+            if (puzzle.created_at < new Date()) {
                 return res.status(400).json({ message: 'Reward expired' });
             }
 
@@ -23,7 +23,7 @@ export class UserRewardController {
                 reward_type: reward.reward_type,
                 reward_value: reward.reward_value,
                 terms: reward.terms,
-                expires_at: puzzle.getExpiryDate()
+                expires_at: puzzle.created_at
             });
         } catch (error) {
             res.status(500).json({ message: 'Failed to fetch reward', error });

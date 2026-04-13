@@ -5,17 +5,30 @@ import { AdminClaimController } from '../module/admin/controllers/claim.controll
 import { AdminAnalyticsController } from '../module/admin/controllers/analytics.controller.js';
 import { verifyToken } from '../middleware/auth.middleware.js';
 
+const controller=new AdminAuthController();
 const router = Router();
 
 // Auth (no middleware)
-router.post('/login', AdminAuthController.login);
+router.post('/login', controller.login);
 
 // Protected routes
-router.use(verifyToken);
-router.post('/puzzle/create', AdminPuzzleController.createPuzzleWithReward);
-router.get('/puzzle/list', AdminPuzzleController.listAllPuzzles);
-router.put('/puzzle/:id/status', AdminPuzzleController.updatePuzzleStatus);
-router.get('/claims', AdminClaimController.viewAllClaims);
-router.get('/analytics', AdminAnalyticsController.getAnalytics);
+// router.use(verifyToken);
+router.post('/puzzle/create',verifyToken, AdminPuzzleController.createPuzzleWithReward);
+router.get('/puzzle/list',verifyToken, AdminPuzzleController.listAllPuzzles);
+router.put('/puzzle/:id/status',verifyToken, AdminPuzzleController.updatePuzzleStatus);
+router.get('/claims',verifyToken, AdminClaimController.viewAllClaims);
+router.get('/analytics',verifyToken, AdminAnalyticsController.getAnalytics);
+router.route('/forgot-password').post(controller.forgotPassword);
+router.route('/reset-password').post(controller.resetPassword);
+router.post(
+    "/logout",
+    verifyToken,
+    controller.logout
+);
+router.get(
+    "/profile",
+    verifyToken,
+    controller.getProfile
+);
 
 export default router;

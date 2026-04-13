@@ -58,7 +58,7 @@ export class UserClaimController {
             res.json({
                 claimed: true,
                 claim_id: claim._id,
-                claimed_at: claim.createdAt,
+                claimed_at: claim.claimed_at,
                 status: claim.redemption_status
             });
         } catch (error) {
