@@ -172,11 +172,16 @@ import { Reward } from '../../../models/Reward.model.js';
 import { QRService } from '../../../services/qr.service.js';
 import { ScrambleService } from '../../../services/scramble.service.js';
 import { v4 as uuidv4 } from 'uuid';
+import { uploadToCloudinary } from '../../../config/cloudinary.js';
+import { getFileBuffer } from '../../../utils/buffer.file.js';
+import path from "path";
+import fs from "fs";
 
 export class AdminPuzzleController {
+
     static async createPuzzleWithReward(req: Request, res: Response, next: NextFunction) {
         try {
-            const { reward_type, reward_value, terms, expiry_days, difficulty } = req.body;
+            const { reward_type, reward_value, terms, expiry_days, difficulty, } = req.body;
 
             const puzzleId = uuidv4();
             const rewardId = uuidv4();
@@ -193,15 +198,39 @@ export class AdminPuzzleController {
             const { scrambledImageUrl, piecesUrls } =
                 await ScrambleService.scrambleQRCode(qrImageBuffer, pieces);
 
+            const scrambledFullPath = path.join(
+                process.cwd(),
+                "public",
+                scrambledImageUrl
+            );
+            const piecesFullPaths = piecesUrls.map((url) =>
+                path.join(process.cwd(), "public", url)
+            );
             const expiresAt = new Date();
             expiresAt.setDate(expiresAt.getDate() + expiry_days);
+
+            // 🔥 Upload scrambled + all pieces together (fast)
+            const [uploadedScrambled, uploadedPieces] = await Promise.all([
+                uploadToCloudinary(fs.readFileSync(scrambledFullPath)),
+
+                Promise.all(
+                    piecesFullPaths.map((filePath) =>
+                        uploadToCloudinary(fs.readFileSync(filePath))
+                    )
+                )
+            ]);
+
+            // fs.unlinkSync(scrambledImageUrl);
+
+            // piecesUrls.forEach((file) => fs.unlinkSync(file));
+
 
             const puzzle = await Puzzle.create({
                 puzzle_id: puzzleId,
                 qr_original_text: qrText,
                 split_pieces_count: pieces,
-                scrambled_image_url: scrambledImageUrl,
-                pieces_urls: piecesUrls,
+                scrambled_image_url: uploadedScrambled,
+                pieces_urls: uploadedPieces,
                 expiry_days: expiry_days,
                 expires_at: expiresAt,
                 status: 'pending'  // ✅ Explicitly set initial status
@@ -281,7 +310,7 @@ export class AdminPuzzleController {
                 }
             }
             //  console.log("ser----------",search);
-             
+
             if (search) {
                 filter.$or = [
                     { puzzle_id: { $regex: search, $options: 'i' } },
@@ -297,7 +326,7 @@ export class AdminPuzzleController {
                     .limit(limit),
                 Puzzle.countDocuments(filter)
             ]);
-//    console.log("puzzles----------",puzzles);
+            //    console.log("puzzles----------",puzzles);
             const totalPages = Math.ceil(totalCount / limit);
 
             res.json({
@@ -327,9 +356,9 @@ export class AdminPuzzleController {
     static async getPuzzleById(req: Request, res: Response, next: NextFunction) {
         try {
             const { id } = req.params;
-            
+
             const puzzle = await Puzzle.findOne({ puzzle_id: id });
-            
+
             if (!puzzle) {
                 return res.status(404).json({ success: false, message: 'Puzzle not found' });
             }
