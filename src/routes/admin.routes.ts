@@ -13,12 +13,15 @@ router.post('/login', controller.login);
 
 // Protected routes
 // router.use(verifyToken);
-// router.get('/puzzle/:id', AdminPuzzleController.getPuzzleById);  // ✅ NEW
-router.post('/puzzle/create',verifyToken, AdminPuzzleController.createPuzzleWithReward);
-router.get('/puzzle/list',verifyToken, AdminPuzzleController.listAllPuzzles);
-router.put('/puzzle/:id/status',verifyToken, AdminPuzzleController.updatePuzzleStatus);
-router.get('/claims',verifyToken, AdminClaimController.viewAllClaims);
-router.get('/analytics',verifyToken, AdminAnalyticsController.getAnalytics);
+
+router.post('/puzzle/create',verifyToken, AdminPuzzleController.createPuzzleWithReward);//1
+router.get('/puzzle/list',verifyToken, AdminPuzzleController.listAllPuzzles);//2
+router.get('/puzzle/:id', verifyToken,AdminPuzzleController.getPuzzleById);
+router.put('/puzzle/:id/status',verifyToken, AdminPuzzleController.updatePuzzleStatus);//3
+router.get('/claims',verifyToken, AdminClaimController.viewAllClaims);//4
+router.get('/claims/:id',verifyToken, AdminClaimController.getClaimById);//5
+router.put('/claims/:id/status',verifyToken, AdminClaimController.updateClaimStatus);//6
+router.get('/analytics',verifyToken, AdminAnalyticsController.getAnalytics)//7
 router.route('/forgot-password').post(controller.forgotPassword);
 router.route('/reset-password').post(controller.resetPassword);
 router.post(
