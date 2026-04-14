@@ -387,6 +387,28 @@ export class AdminPuzzleController {
         }
     }
 
+    static async deletePuzzleById(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { id } = req.params;
+
+            const puzzle = await Puzzle.findByIdAndDelete({ puzzle_id: id });
+
+            if (!puzzle) {
+                return res.status(404).json({ success: false, message: 'Puzzle not found' });
+            }
+
+            const reward = await Reward.findByIdAndDelete({ puzzle_id: id });
+
+            res.json({
+                success: true,
+                message:"Puzzle deleted successfully!",
+                data: null
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
     static async updatePuzzleStatus(req: Request, res: Response, next: NextFunction) {
         try {
             const { id } = req.params;
