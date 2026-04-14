@@ -401,7 +401,7 @@ export class AdminPuzzleController {
 
             res.json({
                 success: true,
-                message:"Puzzle deleted successfully!",
+                message: "Puzzle deleted successfully!",
                 data: null
             });
         } catch (error) {
@@ -412,23 +412,73 @@ export class AdminPuzzleController {
     static async updatePuzzleStatus(req: Request, res: Response, next: NextFunction) {
         try {
             const { id } = req.params;
-            const { status } = req.body;
+            const { status, expiry_days } = req.body;
 
-            const puzzle = await Puzzle.findOneAndUpdate(
-                { puzzle_id: id },
-                { status },
-                { new: true }
-            ).select('-pieces_urls -qr_original_text');
+            const puzzle = await Puzzle.findOne({ puzzle_id: id });
 
             if (!puzzle) {
                 return res.status(404).json({ message: 'Puzzle not found' });
             }
 
+            // 🔥 Expiry check (before update)
+            if (new Date() > puzzle.expires_at) {
+                puzzle.status = "expired";
+                await puzzle.save();
+
+                return res.status(400).json({
+                    success: false,
+                    message: "Puzzle expired"
+                });
+            }
+
+            // 🔥 Status rules
+            if (puzzle.status === "solved") {
+                return res.status(400).json({
+                    message: "Puzzle already solved"
+                });
+            }
+
+            if (puzzle.status === "expired") {
+                return res.status(400).json({
+                    message: "Puzzle expired"
+                });
+            }
+
+            // ===============================
+            // ✅ UPDATE STATUS (optional)
+            // ===============================
+            if (status) {
+                puzzle.status = status;
+
+                if (status === "delivered") {
+                    (puzzle as any).delivered_at = new Date();
+                }
+
+                if (status === "solved") {
+                    (puzzle as any).solved_at = new Date();
+                }
+            }
+
+            // ===============================
+            // ✅ UPDATE EXPIRY (optional)
+            // ===============================
+            if (expiry_days) {
+                puzzle.expiry_days = expiry_days;
+
+                const newExpiry = new Date();
+                newExpiry.setDate(newExpiry.getDate() + expiry_days);
+
+                puzzle.expires_at = newExpiry;
+            }
+
+            await puzzle.save();
+
             res.json({
                 success: true,
-                message: 'Puzzle status updated',
+                message: 'Puzzle updated successfully',
                 data: puzzle
             });
+
         } catch (error) {
             next(error);
         }

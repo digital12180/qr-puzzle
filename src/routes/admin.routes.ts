@@ -21,7 +21,8 @@ router.get('/puzzle/:id', verifyToken,AdminPuzzleController.getPuzzleById);
 router.delete('/puzzle/:id', verifyToken,AdminPuzzleController.deletePuzzleById);
 router.put('/puzzle/:id/status',verifyToken, AdminPuzzleController.updatePuzzleStatus);//3
 router.get('/claims',verifyToken, AdminClaimController.viewAllClaims);//4
-router.get('/claims/:id',verifyToken, AdminClaimController.getClaimById);//5
+router.get('/claims/:id',verifyToken, AdminClaimController.getClaimById);//5 deleteClaimById
+router.delete('/claims/:id',verifyToken, AdminClaimController.deleteClaimById);//8
 router.put('/claims/:id/status',verifyToken, AdminClaimController.updateClaimStatus);//6
 router.get('/analytics',verifyToken, AdminAnalyticsController.getAnalytics)//7
 router.route('/forgot-password').post(controller.forgotPassword);
