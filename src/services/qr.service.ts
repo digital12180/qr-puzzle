@@ -47,7 +47,7 @@ export class QRService {
     }
 
     static generateQRText(puzzleId: string): string {
-        // console.log("frontend usrl=------", process.env.FRONTEND_URL);
+        console.log("frontend usrl=------", process.env.FRONTEND_URL);
         return `${process.env.FRONTEND_URL}/scan/${puzzleId}`;
     }
 }

@@ -280,7 +280,7 @@ export class AdminPuzzleController {
                     filter.created_at.$lte = new Date(to_date as string);
                 }
             }
-             console.log("ser----------",search);
+            //  console.log("ser----------",search);
              
             if (search) {
                 filter.$or = [
@@ -297,7 +297,7 @@ export class AdminPuzzleController {
                     .limit(limit),
                 Puzzle.countDocuments(filter)
             ]);
-   console.log("puzzles----------",puzzles);
+//    console.log("puzzles----------",puzzles);
             const totalPages = Math.ceil(totalCount / limit);
 
             res.json({
