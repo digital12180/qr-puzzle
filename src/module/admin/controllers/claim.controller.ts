@@ -201,6 +201,32 @@ export class AdminClaimController {
         }
     }
 
+    static async deleteClaimById(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { id } = req.params;
+            
+            const claim = await Claim.findOneAndDelete({ claim_id: id });
+            
+            if (!claim) {
+                return res.status(404).json({ 
+                    success: false, 
+                    message: 'Claim not found' 
+                });
+            }
+
+            const puzzle = await Puzzle.findOneAndDelete({ puzzle_id: claim.puzzle_id });
+            const reward = await Reward.findOneAndDelete({ puzzle_id: claim.puzzle_id });
+
+            res.json({
+                success: true,
+                message:"claim deleted successfully!",
+                data:null
+            });
+        } catch (error: any) {
+            next(error);
+        }
+    }
+
     // Optional: Update claim status
     static async updateClaimStatus(req: Request, res: Response, next: NextFunction) {
         try {
