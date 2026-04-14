@@ -5,6 +5,7 @@ import express from "express";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import  baseRoutes from './routes/index.routes.js'
+import path from "path";
 // import morgan from "morgan";
 // import helmet from "helmet";
 // import compression from "compression";
@@ -39,6 +40,10 @@ app.use(cors({
 // Request parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(
+  "/puzzles",
+  express.static(path.join(process.cwd(), "dist", "public", "puzzles"))
+);
 
 // Compression
 // app.use(compression());
