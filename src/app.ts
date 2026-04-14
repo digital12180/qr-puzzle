@@ -4,12 +4,12 @@ import { dirname } from "path";
 import express from "express";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
-import  baseRoutes from './routes/index.routes.js'
+import baseRoutes from './routes/index.routes.js'
 import path from "path";
 // import morgan from "morgan";
 // import helmet from "helmet";
 // import compression from "compression";
-// import cookieParser from "cookie-parser";
+import cookieParser from "cookie-parser";
 
 
 const app = express();
@@ -42,14 +42,14 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(
   "/puzzles",
-  express.static(path.join(process.cwd(), "dist", "public", "puzzles"))
+  express.static(path.join(process.cwd(), "public", "puzzles"))
 );
 
 // Compression
 // app.use(compression());
 
 // // Cookie parser
-// app.use(cookieParser());
+app.use(cookieParser());
 
 //Logging 
 // if (process.env.NODE_ENV !== 'production') {
@@ -90,6 +90,6 @@ app.get('/', (req, res) => {
   });
 });
 
-app.use('/apis',baseRoutes);
+app.use('/apis', baseRoutes);
 
 export default app;
