@@ -7,19 +7,20 @@ export interface IReward extends Document {
     reward_value: string;
     terms: string;
     is_active: boolean;
+    createdAt: Date;
 }
 
 const RewardSchema = new Schema<IReward>({
     reward_id: { type: String, required: true, unique: true },
     puzzle_id: { type: String, required: true, ref: 'Puzzle' },
-    reward_type: { 
-        type: String, 
+    reward_type: {
+        type: String,
         enum: ['food', 'voucher', 'merchandise', 'digital'],
-        required: true 
+        required: true
     },
     reward_value: { type: String, required: true },
     terms: { type: String, default: '' },
     is_active: { type: Boolean, default: true }
-},{timestamps:true});
+}, { timestamps: true });
 
 export const Reward = mongoose.model<IReward>('Reward', RewardSchema);
