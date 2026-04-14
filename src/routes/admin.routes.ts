@@ -3,6 +3,7 @@ import { AdminAuthController } from '../module/admin/controllers/auth.controller
 import { AdminPuzzleController } from '../module/admin/controllers/puzzle.controller.js';
 import { AdminClaimController } from '../module/admin/controllers/claim.controller.js';
 import { AdminAnalyticsController } from '../module/admin/controllers/analytics.controller.js';
+import { AdminRewardController } from '../module/admin/controllers/reward.controller.js';
 import { verifyToken } from '../middleware/auth.middleware.js';
 
 const controller=new AdminAuthController();
@@ -35,5 +36,12 @@ router.get(
     verifyToken,
     controller.getProfile
 );
+
+//Reward 
+router.get('/rewards', verifyToken,AdminRewardController.getAllRewards);
+router.get('/rewards/:id',verifyToken, AdminRewardController.getRewardById);
+router.put('/rewards/:id',verifyToken, AdminRewardController.updateReward);
+router.delete('/rewards/:id',verifyToken, AdminRewardController.deleteReward);
+router.patch('/rewards/:id/toggle',verifyToken, AdminRewardController.toggleRewardStatus);
 
 export default router;
