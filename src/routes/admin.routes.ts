@@ -17,6 +17,7 @@ router.post('/login', controller.login);
 router.post('/puzzle/create',verifyToken, AdminPuzzleController.createPuzzleWithReward);//1
 router.get('/puzzle/list',verifyToken, AdminPuzzleController.listAllPuzzles);//2
 router.get('/puzzle/:id', verifyToken,AdminPuzzleController.getPuzzleById);
+router.delete('/puzzle/:id', verifyToken,AdminPuzzleController.deletePuzzleById);
 router.put('/puzzle/:id/status',verifyToken, AdminPuzzleController.updatePuzzleStatus);//3
 router.get('/claims',verifyToken, AdminClaimController.viewAllClaims);//4
 router.get('/claims/:id',verifyToken, AdminClaimController.getClaimById);//5
