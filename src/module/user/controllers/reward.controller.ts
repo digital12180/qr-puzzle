@@ -14,7 +14,7 @@ export class UserRewardController {
                 return res.status(404).json({ message: 'Reward not found' });
             }
 
-            if (puzzle.created_at < new Date()) {
+            if (puzzle.expires_at < new Date()) {
                 return res.status(400).json({ message: 'Reward expired' });
             }
 
