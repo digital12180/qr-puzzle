@@ -35,7 +35,7 @@ class EmailService {
   async sendEmail(to: string, subject: string, html: string) {
     try {
       await this.transporter.sendMail({
-        from: `"Kaaya Prime App" <${process.env.EMAIL}>`,
+        from: `"QR puzzle App" <${process.env.EMAIL}>`,
         to,
         subject,
         html,
@@ -62,7 +62,7 @@ class EmailService {
       <p>You received a new message from <b>${senderName}</b>.</p>
       <p>Login to your account to reply.</p>
       <br/>
-      <p>Thanks,<br/>Kaaya Prime Team</p>
+      <p>Thanks,<br/>QR Puzzle  Team</p>
       `
     );
   }
@@ -79,11 +79,11 @@ class EmailService {
       <h1>${otp}</h1>
       <p>This OTP is valid for 5 minutes.</p>
       <br/>
-      <p>Thanks,<br/>Kaaya Prime Team</p>
+      <p>Thanks,<br/>QR Puzzle Team</p>
     `;
 
       await this.transporter.sendMail({
-        from: `"Kaaya Prime App" <${process.env.EMAIL}>`,
+        from: `"QR Puzzle App" <${process.env.EMAIL}>`,
         to: email,
         subject: "🔐 OTP Verification",
         html,
@@ -101,47 +101,6 @@ class EmailService {
 
       return true;
     }
-  }
-
-  async sendPasswordResetEmail(email: string, name: string) {
-    return this.sendEmail(
-      email,
-      "🔑 Password Reset Successful",
-      `
-      <h2>Hello ${name},</h2>
-      <p>Your password has been successfully reset.</p>
-      <p>If this wasn't you, contact support immediately.</p>
-      <br/>
-      <p>Thanks,<br/>Kaaya Prime Team</p>
-      `
-    );
-  }
-
-  async sendLeadCreatedEmail(
-    email: string,
-    leadName: string
-  ) {
-    return this.sendEmail(
-      email,
-      "✅ Lead Created Successfully",
-      `
-    <h2>Hello,</h2>
-    
-    <p>Your lead has been created successfully 🎉</p>
-    
-    <p><b>Lead Name:</b> ${leadName}</p>
-    
-    <p>You can now track and manage this lead from your dashboard.</p>
-    
-    <br/>
-    
-    <p>If you have any questions, feel free to contact our support team.</p>
-    
-    <br/>
-    
-    <p>Best regards,<br/>Kaaya Prime Team</p>
-    `
-    );
   }
 }
 

@@ -1,3 +1,4 @@
+// src/models/Puzzle.model.ts
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IPuzzle extends Document {
@@ -5,6 +6,7 @@ export interface IPuzzle extends Document {
     qr_original_text: string;
     split_pieces_count: number;
     scrambled_image_url: string;
+    pieces_urls: string[];  // ✅ IMPORTANT - Individual pieces for printing
     status: 'pending' | 'delivered' | 'solved' | 'expired';
     created_at: Date;
     expiry_days: number;
@@ -16,6 +18,7 @@ const PuzzleSchema = new Schema<IPuzzle>({
     qr_original_text: { type: String, required: true, unique: true },
     split_pieces_count: { type: Number, required: true, default: 4 },
     scrambled_image_url: { type: String, required: true },
+    pieces_urls: [{ type: String, required: true }],  // ✅ ADD THIS
     status: { 
         type: String, 
         enum: ['pending', 'delivered', 'solved', 'expired'],
@@ -24,6 +27,6 @@ const PuzzleSchema = new Schema<IPuzzle>({
     created_at: { type: Date, default: Date.now },
     expiry_days: { type: Number, required: true, default: 30 },
     expires_at: { type: Date, required: true }
-},{timestamps:true});
+});
 
 export const Puzzle = mongoose.model<IPuzzle>('Puzzle', PuzzleSchema);

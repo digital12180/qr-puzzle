@@ -13,6 +13,7 @@ router.post('/login', controller.login);
 
 // Protected routes
 // router.use(verifyToken);
+// router.get('/puzzle/:id', AdminPuzzleController.getPuzzleById);  // ✅ NEW
 router.post('/puzzle/create',verifyToken, AdminPuzzleController.createPuzzleWithReward);
 router.get('/puzzle/list',verifyToken, AdminPuzzleController.listAllPuzzles);
 router.put('/puzzle/:id/status',verifyToken, AdminPuzzleController.updatePuzzleStatus);
