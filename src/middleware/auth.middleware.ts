@@ -52,6 +52,8 @@ export const generateToken = async (
     expiresIn: string = "7d"
 ): Promise<string> => {
 
+    console.log("user----------------",user);
+    
     const userId = user._id || user.id;
 
 //    console.log(user);
@@ -59,10 +61,11 @@ export const generateToken = async (
     if (!userId) {
         throw new Error("User ID is required");
     }
-
+   console.log("role - token",user.role);
+   
     const payload = {
         adminId: userId.toString(),
-        role: user.role || "operator",
+        role: user.role,
         email: user.email || "",
     };
   
@@ -73,7 +76,7 @@ export const generateToken = async (
     }
 
     const options = {
-        expiresIn: '1d',
+        expiresIn: '7d',
         algorithm: "HS256" as const,
     };
 
@@ -173,7 +176,8 @@ export const checkRole = (allowedRoles: string[] = []) => {
     return (req: Request, res: Response, next: NextFunction): Response | void => {
         try {
             const userRole = req.tokenData?.roleName;
-
+            console.log("role----",userRole);
+            
             if (!userRole) {
                 return res.json(new APIResponse(false, "No Token"));
             }

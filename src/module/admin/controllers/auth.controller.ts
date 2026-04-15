@@ -26,7 +26,7 @@ export class AdminAuthController {
                 return res.status(401).json({ message: 'Invalid password' });
             }
 
-            const token = await generateToken(admin._id, admin.email);
+            const token = await generateToken({ id: admin._id, email: admin.email, role: admin.role });
             return res.json({ token, admin: { email: admin.email, role: admin.role } });
         } catch (error) {
             // console.log(error);

@@ -320,7 +320,7 @@ export class AdminPuzzleController {
 
             const [puzzles, totalCount] = await Promise.all([
                 Puzzle.find(filter)
-                    .select('-pieces_urls -qr_original_text')  // ✅ Don't expose sensitive data in list
+                    .select('-pieces_urls')  // ✅ Don't expose sensitive data in list
                     .sort({ created_at: -1 })
                     .skip(skip)
                     .limit(limit),
@@ -373,6 +373,7 @@ export class AdminPuzzleController {
                         split_pieces_count: puzzle.split_pieces_count,
                         pieces_urls: puzzle.pieces_urls,  // ✅ For printing
                         status: puzzle.status,
+                        qr_text:puzzle.qr_original_text,
                         expires_at: puzzle.expires_at
                     },
                     reward: reward ? {
