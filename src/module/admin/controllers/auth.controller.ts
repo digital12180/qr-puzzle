@@ -10,6 +10,32 @@ import { APIResponse } from '../../../utils/apiResponse.js';
 
 export class AdminAuthController {
     private service = new AdminService();
+
+    async register(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { email, password } = req.body;
+            if (!email || !password) {
+                return res.json({ message: "Email or Password required" });
+            }
+
+            const admin = await Admin.findOne({ email: email });
+
+            if (admin) {
+                return res.status(401).json({ message: 'admin already exist' });
+            }
+
+            const hashedpassword = await hashPassword(password);
+            await Admin.create({
+                email: email,
+                password: hashedpassword,
+                role: "admin"
+            })
+            return res.json({ message: "Admin registered successfully!" });
+        } catch (error) {
+            next(error)
+        }
+    }
+
     async login(req: Request, res: Response, next: NextFunction) {
         try {
             const { email, password } = req.body;

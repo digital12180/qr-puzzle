@@ -11,6 +11,7 @@ const router = Router();
 
 // Auth (no middleware)
 router.post('/login', controller.login);
+router.post('/register', controller.register);
 
 // Protected routes
 // router.use(verifyToken);
