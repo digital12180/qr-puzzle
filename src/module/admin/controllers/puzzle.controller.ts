@@ -470,6 +470,7 @@ export class AdminPuzzleController {
                 newExpiry.setDate(newExpiry.getDate() + expiry_days);
 
                 puzzle.expires_at = newExpiry;
+                puzzle.status="expired";
             }
 
             await puzzle.save();
