@@ -7,7 +7,7 @@
 //     static async viewAllClaims(req: Request, res: Response, next: NextFunction) {
 //         try {
 //             const claims = await Claim.find().sort({ claimed_at: -1 });
-            
+
 //             const claimsWithDetails = await Promise.all(
 //                 claims.map(async (claim) => {
 //                     const puzzle = await Puzzle.findOne({ puzzle_id: claim.puzzle_id });
@@ -19,7 +19,7 @@
 //                     };
 //                 })
 //             );
-            
+
 //             res.json(claimsWithDetails);
 //         } catch (error:any) {
 //             // res.status(500).json({ message: 'Failed to fetch claims', error });
@@ -29,7 +29,7 @@
 // }
 
 // src/controllers/admin/claim.controller.ts
-import type{ Request, Response,NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { Claim } from '../../../models/Claim.model.js';
 import { Puzzle } from '../../../models/Puzzle.model.js';
 import { Reward } from '../../../models/Reward.model.js';
@@ -43,12 +43,12 @@ export class AdminClaimController {
             const skip = (page - 1) * limit;
 
             // Filter params
-            const { 
-                redemption_status, 
-                from_date, 
-                to_date, 
+            const {
+                redemption_status,
+                from_date,
+                to_date,
                 search,
-                reward_type 
+                reward_type
             } = req.query;
 
             // Build filter object for Claim
@@ -70,21 +70,15 @@ export class AdminClaimController {
                 }
             }
 
-            // First get claims with pagination
-            const claims = await Claim.find(claimFilter)
-                .sort({ claimed_at: -1 })
-                .skip(skip)
-                .limit(limit);
+            // ✅ FIX: Get ALL claims matching filters (without pagination first)
+            const allClaims = await Claim.find(claimFilter).sort({ claimed_at: -1 });
 
-            // Get total count for pagination
-            const totalCount = await Claim.countDocuments(claimFilter);
-
-            // Enrich claims with puzzle and reward details
-            let claimsWithDetails = await Promise.all(
-                claims.map(async (claim) => {
+            // Enrich ALL claims with puzzle and reward details
+            let allClaimsWithDetails = await Promise.all(
+                allClaims.map(async (claim) => {
                     const puzzle = await Puzzle.findOne({ puzzle_id: claim.puzzle_id });
                     const reward = await Reward.findOne({ puzzle_id: claim.puzzle_id });
-                    
+
                     return {
                         claim_id: claim.claim_id,
                         puzzle_id: claim.puzzle_id,
@@ -109,42 +103,57 @@ export class AdminClaimController {
             );
 
             // Apply additional filters that require joined data
+            let filteredClaims = allClaimsWithDetails;
+
             if (reward_type) {
-                claimsWithDetails = claimsWithDetails.filter(
+                filteredClaims = filteredClaims.filter(
                     claim => claim.reward_details?.reward_type === reward_type
                 );
             }
 
             if (search) {
                 const searchLower = (search as string).toLowerCase();
-                claimsWithDetails = claimsWithDetails.filter(
-                    claim => 
+                filteredClaims = filteredClaims.filter(
+                    claim =>
                         claim.puzzle_id.toLowerCase().includes(searchLower) ||
                         claim.user_device_id.toLowerCase().includes(searchLower) ||
                         claim.reward_details?.reward_value?.toLowerCase().includes(searchLower)
                 );
             }
 
-            // Update total count after search filter
-            const filteredTotalCount = claimsWithDetails.length;
-            
-            // Calculate pagination metadata
-            const totalPages = Math.ceil(filteredTotalCount / limit);
+            // ✅ FIX: Apply pagination AFTER all filtering
+            const finalTotalCount = filteredClaims.length;
+            const paginatedClaims = filteredClaims.slice(skip, skip + limit);
+
+            const totalPages = Math.ceil(finalTotalCount / limit);
             const hasNextPage = page < totalPages;
             const hasPrevPage = page > 1;
 
+            // Get summary statistics (without pagination)
+            const [
+                totalClaims,
+                pendingClaims,
+                completedClaims,
+                failedClaims
+            ] = await Promise.all([
+                Claim.countDocuments(),
+                Claim.countDocuments({ redemption_status: 'pending' }),
+                Claim.countDocuments({ redemption_status: 'completed' }),
+                Claim.countDocuments({ redemption_status: 'failed' })
+            ]);
+
             res.json({
                 success: true,
-                data: claimsWithDetails,
+                data: paginatedClaims,  // ✅ Fixed: using paginated data
                 pagination: {
                     current_page: page,
                     limit: limit,
-                    total_count: filteredTotalCount,
+                    total_count: finalTotalCount,
                     total_pages: totalPages,
                     has_next_page: hasNextPage,
                     has_prev_page: hasPrevPage,
                     showing_from: skip + 1,
-                    showing_to: Math.min(skip + limit, filteredTotalCount)
+                    showing_to: Math.min(skip + limit, finalTotalCount)
                 },
                 filters: {
                     redemption_status: redemption_status || null,
@@ -154,10 +163,10 @@ export class AdminClaimController {
                     search: search || null
                 },
                 summary: {
-                    total_claims: await Claim.countDocuments(),
-                    pending_claims: await Claim.countDocuments({ redemption_status: 'pending' }),
-                    completed_claims: await Claim.countDocuments({ redemption_status: 'completed' }),
-                    failed_claims: await Claim.countDocuments({ redemption_status: 'failed' })
+                    total_claims: totalClaims,
+                    pending_claims: pendingClaims,
+                    completed_claims: completedClaims,
+                    failed_claims: failedClaims
                 }
             });
         } catch (error: any) {
@@ -169,13 +178,13 @@ export class AdminClaimController {
     static async getClaimById(req: Request, res: Response, next: NextFunction) {
         try {
             const { id } = req.params;
-            
+
             const claim = await Claim.findOne({ claim_id: id });
-            
+
             if (!claim) {
-                return res.status(404).json({ 
-                    success: false, 
-                    message: 'Claim not found' 
+                return res.status(404).json({
+                    success: false,
+                    message: 'Claim not found'
                 });
             }
 
@@ -204,13 +213,13 @@ export class AdminClaimController {
     static async deleteClaimById(req: Request, res: Response, next: NextFunction) {
         try {
             const { id } = req.params;
-            
+
             const claim = await Claim.findOneAndDelete({ claim_id: id });
-            
+
             if (!claim) {
-                return res.status(404).json({ 
-                    success: false, 
-                    message: 'Claim not found' 
+                return res.status(404).json({
+                    success: false,
+                    message: 'Claim not found'
                 });
             }
 
@@ -219,8 +228,8 @@ export class AdminClaimController {
 
             res.json({
                 success: true,
-                message:"claim deleted successfully!",
-                data:null
+                message: "claim deleted successfully!",
+                data: null
             });
         } catch (error: any) {
             next(error);
@@ -234,9 +243,9 @@ export class AdminClaimController {
             const { redemption_status } = req.body;
 
             if (!['pending', 'completed', 'failed'].includes(redemption_status)) {
-                return res.status(400).json({ 
-                    success: false, 
-                    message: 'Invalid redemption status' 
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid redemption status'
                 });
             }
 
@@ -247,9 +256,9 @@ export class AdminClaimController {
             );
 
             if (!claim) {
-                return res.status(404).json({ 
-                    success: false, 
-                    message: 'Claim not found' 
+                return res.status(404).json({
+                    success: false,
+                    message: 'Claim not found'
                 });
             }
 
