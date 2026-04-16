@@ -10,7 +10,7 @@ export class UserClaimController {
         try {
             const { puzzle_id, user_device_id } = req.body;
             
-            const puzzle = await Puzzle.findOne({ puzzle_id });
+            const puzzle = await Puzzle.findOne({ puzzle_id:puzzle_id });
             if (!puzzle) {
                 return res.status(404).json({ message: 'Puzzle not found' });
             }
@@ -32,7 +32,7 @@ export class UserClaimController {
                 { status: 'solved' }
             );
 
-            const reward = await Reward.findOne({ puzzle_id });
+            const reward = await Reward.findOne({ puzzle_id:puzzle_id });
 
             res.json({
                 success: true,
@@ -50,7 +50,7 @@ export class UserClaimController {
         try {
             const { puzzle_id } = req.params;
             
-            const claim = await Claim.findOne({ puzzle_id });
+            const claim = await Claim.findOne({ puzzle_id:puzzle_id });
             
             if (!claim) {
                 return res.json({ claimed: false });
