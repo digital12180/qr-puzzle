@@ -177,7 +177,7 @@ import { getFileBuffer } from '../../../utils/buffer.file.js';
 import path from "path";
 import fs from "fs";
 import { APIResponse } from '../../../utils/apiResponse.js';
-import { generateSecureId } from '../../../utils/generateId.js';
+import { generateUniqueKey } from '../../../utils/generateId.js';
 
 export class AdminPuzzleController {
 
@@ -189,8 +189,8 @@ export class AdminPuzzleController {
                 return res.json(new APIResponse(false, "All fields are required!"))
             }
 
-            const puzzleId = generateSecureId();
-            const rewardId = generateSecureId();
+            const puzzleId = generateUniqueKey();
+            const rewardId = generateUniqueKey();
 
             const qrText = QRService.generateQRText(puzzleId);
             const qrImageBuffer = await QRService.generateQRCodeBuffer(qrText);
