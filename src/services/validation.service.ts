@@ -40,7 +40,7 @@ export class ValidationService {
 
         // Extract puzzle_id from URL if needed
         if (qrTextOrPuzzleId.includes('/scan/')) {
-            const match = qrTextOrPuzzleId.match(/\/scan\/([a-f0-9-]+)/i);
+            const match = qrTextOrPuzzleId.match(/\/scan\/([A-Z0-9]+)/i);
             if (match) {
                 if (!match[1] || match[1] == 'undefined') {
                     return { valid: false, message: 'QR text should be string' };
