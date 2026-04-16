@@ -96,7 +96,7 @@ export class AdminAnalyticsController {
                 dateFilter.created_at = { $gte: startDate };
                 claimDateFilter.claimed_at = { $gte: startDate };
             }
-
+            const now = new Date();
             // Execute all queries in parallel for better performance
             const [
                 totalPuzzles,
@@ -222,12 +222,9 @@ export class AdminAnalyticsController {
                         }
                     }
                 ]),
-
                 // Expired puzzles
                 Puzzle.countDocuments({
-                    ...dateFilter,
-                    expires_at: { $lt: new Date() },
-                    status: { $ne: 'expired' }
+                    status: { $eq: 'expired' }
                 })
             ]);
 
