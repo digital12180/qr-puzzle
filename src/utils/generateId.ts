@@ -1,15 +1,11 @@
-import crypto from 'crypto';
+import { customAlphabet } from 'nanoid';
 
-export const generateSecureId = (length: number = 15): string => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-    const bytes = crypto.randomBytes(length);
+// Define your allowed characters
+const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
 
-    let result = '';
+// Create nanoid generator with length 15
+const nanoid = customAlphabet(alphabet, 15);
 
-    for (let i = 0; i < bytes.length; i++) {
-        const b: number = bytes[i] as number; // always defined
-        result += chars[b % chars.length];
-    }
-
-    return result;
+export const generateUniqueKey = (): string => {
+  return nanoid();
 };
