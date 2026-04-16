@@ -135,4 +135,36 @@ export class UserScanController {
         }
     }
 
+    static async getUserRewards(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { email } = req.params;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: "Email is required"
+            });
+        }
+
+        const user = await User.findOne({ email }).select('email rewards');
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            email: user.email,
+            total_rewards: user.rewards.length,
+            rewards: user.rewards
+        });
+
+    } catch (error) {
+        next(error);
+    }
+}
+
 }
