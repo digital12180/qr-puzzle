@@ -4,6 +4,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IPuzzle extends Document {
     puzzle_id: string;
     qr_original_text: string;
+    reward_id: string;
     split_pieces_count: number;
     scrambled_image_url: string;
     pieces_urls: string[];  // ✅ IMPORTANT - Individual pieces for printing
@@ -15,6 +16,7 @@ export interface IPuzzle extends Document {
 
 const PuzzleSchema = new Schema<IPuzzle>({
     puzzle_id: { type: String, required: true, unique: true },
+    reward_id: { type: String, required: true, unique: true },
     qr_original_text: { type: String, required: true, unique: true },
     split_pieces_count: { type: Number, required: true, default: 4 },
     scrambled_image_url: { type: String, required: true },
