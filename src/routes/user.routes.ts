@@ -11,5 +11,6 @@ router.get('/reward/:puzzle_id', UserRewardController.getRewardDetails);
 router.post('/claim', UserClaimController.claimReward);
 router.get('/claim/status/:puzzle_id', UserClaimController.checkClaimStatus);
 router.post('/detail',UserScanController.submitUsrDetails);
+router.get('/rewards/:email', UserScanController.getUserRewards);
 
 export default router;
