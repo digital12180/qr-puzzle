@@ -78,11 +78,11 @@ export class UserScanController {
                 return res.status(400).json(new APIResponse(false, "Reward is no longer active!"));
             }
 
-            // Check if already claimed
-            const existingClaim = await Claim.findOne({ puzzle_id: puzzle_id });
-            if (existingClaim) {
-                return res.status(409).json(new APIResponse(false, "Reward already claimed!"));
-            }
+            // // Check if already claimed
+            // const existingClaim = await Claim.findOne({ puzzle_id: puzzle_id });
+            // if (existingClaim) {
+            //     return res.status(409).json(new APIResponse(false, "Reward already claimed!"));
+            // }
 
             // Find or create user
             let user = await User.findOne({ email: email });
@@ -105,19 +105,19 @@ export class UserScanController {
                 });
             }
 
-            // Create claim record
-            const claim = await Claim.create({
-                claim_id: `claim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                puzzle_id: puzzle_id,
-                user_device_id: email,
-                redemption_status: 'completed'
-            });
+            // // Create claim record
+            // const claim = await Claim.create({
+            //     claim_id: `claim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            //     puzzle_id: puzzle_id,
+            //     user_device_id: email,
+            //     redemption_status: 'completed'
+            // });
 
-            // Update puzzle status
-            await Puzzle.findOneAndUpdate(
-                { puzzle_id: puzzle_id },
-                { status: 'solved' }
-            );
+            // // Update puzzle status
+            // await Puzzle.findOneAndUpdate(
+            //     { puzzle_id: puzzle_id },
+            //     { status: 'solved' }
+            // );
 
             return res.status(200).json(new APIResponse(true, "Reward claimed successfully!", {
                 user: {
@@ -128,10 +128,6 @@ export class UserScanController {
                     reward_type: reward.reward_type,
                     reward_value: reward.reward_value,
                     terms: reward.terms
-                },
-                claim: {
-                    claim_id: claim.claim_id,
-                    claimed_at: claim.claimed_at
                 }
             }));
         } catch (error) {
