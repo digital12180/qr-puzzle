@@ -176,6 +176,8 @@ import { uploadToCloudinary } from '../../../config/cloudinary.js';
 import { getFileBuffer } from '../../../utils/buffer.file.js';
 import path from "path";
 import fs from "fs";
+import { APIResponse } from '../../../utils/apiResponse.js';
+import { generateSecureId } from '../../../utils/generateId.js';
 
 export class AdminPuzzleController {
 
@@ -183,8 +185,12 @@ export class AdminPuzzleController {
         try {
             const { reward_type, reward_value, terms, expiry_days, difficulty, } = req.body;
 
-            const puzzleId = uuidv4();
-            const rewardId = uuidv4();
+            if (!reward_type || !reward_value || !terms || !expiry_days || !difficulty) {
+                return res.json(new APIResponse(false, "All fields are required!"))
+            }
+
+            const puzzleId = generateSecureId();
+            const rewardId = generateSecureId();
 
             const qrText = QRService.generateQRText(puzzleId);
             const qrImageBuffer = await QRService.generateQRCodeBuffer(qrText);
@@ -227,6 +233,7 @@ export class AdminPuzzleController {
 
             const puzzle = await Puzzle.create({
                 puzzle_id: puzzleId,
+                reward_id: rewardId,
                 qr_original_text: qrText,
                 split_pieces_count: pieces,
                 scrambled_image_url: uploadedScrambled,
@@ -326,6 +333,7 @@ export class AdminPuzzleController {
                     .limit(limit),
                 Puzzle.countDocuments(filter)
             ]);
+
             //    console.log("puzzles----------",puzzles);
             const totalPages = Math.ceil(totalCount / limit);
 
@@ -373,7 +381,7 @@ export class AdminPuzzleController {
                         split_pieces_count: puzzle.split_pieces_count,
                         pieces_urls: puzzle.pieces_urls,  // ✅ For printing
                         status: puzzle.status,
-                        qr_text:puzzle.qr_original_text,
+                        qr_text: puzzle.qr_original_text,
                         expires_at: puzzle.expires_at
                     },
                     reward: reward ? {
@@ -470,7 +478,7 @@ export class AdminPuzzleController {
                 newExpiry.setDate(newExpiry.getDate() + expiry_days);
 
                 puzzle.expires_at = newExpiry;
-                puzzle.status="expired";
+                puzzle.status = "expired";
             }
 
             await puzzle.save();
