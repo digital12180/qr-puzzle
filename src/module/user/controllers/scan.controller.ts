@@ -136,35 +136,47 @@ export class UserScanController {
     }
 
     static async getUserRewards(req: Request, res: Response, next: NextFunction) {
-    try {
-        const { email } = req.params;
+        try {
+            const { email } = req.params;
 
-        if (!email) {
-            return res.status(400).json({
-                success: false,
-                message: "Email is required"
+            if (!email) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Email is required"
+                });
+            }
+
+            const user = await User.findOne({ email }).select('email rewards');
+
+            if (!user) {
+                return res.status(404).json({
+                    success: false,
+                    message: "User not found"
+                });
+            }
+
+            // ✅ Fetch reward details using reward_id array
+            const rewardsData = await Reward.find({
+                reward_id: { $in: user.rewards }
+            }).select('-__v');
+
+            // ✅ Maintain same order as stored in user.rewards
+            const rewardMap = new Map(
+                rewardsData.map(r => [r.reward_id, r])
+            );
+
+            const orderedRewards = user.rewards.map(id => rewardMap.get(id));
+
+            return res.status(200).json({
+                success: true,
+                email: user.email,
+                total_rewards: orderedRewards.length,
+                rewards: orderedRewards
             });
+
+        } catch (error) {
+            next(error);
         }
-
-        const user = await User.findOne({ email }).select('email rewards');
-
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
-        }
-
-        return res.status(200).json({
-            success: true,
-            email: user.email,
-            total_rewards: user.rewards.length,
-            rewards: user.rewards
-        });
-
-    } catch (error) {
-        next(error);
     }
-}
 
 }
