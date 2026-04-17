@@ -146,7 +146,8 @@ export class UserScanController {
                 });
             }
 
-            const user = await User.findOne({ email }).select('email rewards');
+            // ✅ Get user
+            const user = await User.findOne({ email }).select("email rewards");
 
             if (!user) {
                 return res.status(404).json({
@@ -155,23 +156,97 @@ export class UserScanController {
                 });
             }
 
-            // ✅ Fetch reward details using reward_id array
+            // ✅ Get rewards
             const rewardsData = await Reward.find({
                 reward_id: { $in: user.rewards }
-            }).select('-__v');
+            }).select("-__v");
 
-            // ✅ Maintain same order as stored in user.rewards
+            // ✅ Maintain order
             const rewardMap = new Map(
                 rewardsData.map(r => [r.reward_id, r])
             );
 
-            const orderedRewards = user.rewards.map(id => rewardMap.get(id));
+            const orderedRewards = user.rewards
+                .map(id => rewardMap.get(id))
+                .filter((r): r is typeof rewardsData[0] => Boolean(r));
 
+            // ✅ Extract puzzle_ids
+            const puzzleIds = orderedRewards.map(r => r.puzzle_id as string);
+
+            // ✅ Get puzzles
+            const puzzles = await Puzzle.find({
+                puzzle_id: { $in: puzzleIds }
+            });
+            
+
+        // console.log(puzzleIds)
+            // ✅ Get claims (user specific)
+            const claims = await Claim.find({
+                puzzle_id: { $in: puzzleIds },
+                user_device_id: "mobile" // 🔥 change if needed
+            });
+           
+            // ✅ Create maps
+            const puzzleMap = new Map(
+                puzzles.map(p => [p.puzzle_id, p])
+            );
+
+            const claimMap = new Map(
+                claims.map(c => [c.puzzle_id, c])
+            );
+
+            // ✅ Final merge
+            const finalRewards = orderedRewards.map((reward) => {
+                const puzzle = puzzleMap.get(reward.puzzle_id);
+                const claim = claimMap.get(reward.puzzle_id);
+                     
+                let remainingDays = null;
+
+                if (puzzle?.expires_at) {
+                    const diff =
+                        new Date(puzzle.expires_at).getTime() - Date.now();
+
+                    remainingDays = Math.max(
+                        0,
+                        Math.ceil(diff / (1000 * 60 * 60 * 24))
+                    );
+                }
+
+                return {
+                    reward_id: reward.reward_id,
+                    reward_type: reward.reward_type,
+                    reward_value: reward.reward_value,
+                    terms: reward.terms,
+                    is_active: reward.is_active,
+
+                    puzzle: puzzle
+                        ? {
+                            puzzle_id: puzzle.puzzle_id,
+                            status: puzzle.status,
+                            expires_at: puzzle.expires_at,
+                            remaining_days: remainingDays,
+                        }
+                        : null,
+
+                    claim: claim
+                        ? {
+                            claim_id: claim.claim_id,
+                            status: claim.redemption_status,
+                            claimed_at: claim.claimed_at
+                        }
+                        : {
+                            status: "available",
+                            message: "Reward is available to claim"
+                        }
+                };
+            });
+
+            // ✅ Final response
             return res.status(200).json({
                 success: true,
                 email: user.email,
-                total_rewards: orderedRewards.length,
-                rewards: orderedRewards
+                total_rewards: finalRewards.length,
+                rewards: finalRewards
             });
 
         } catch (error) {
