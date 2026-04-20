@@ -20,4 +20,8 @@ const ClaimSchema = new Schema<IClaim>({
     }
 },{timestamps:true});
 
+ClaimSchema.index({ claimed_at: -1 });
+ClaimSchema.index({ puzzle_id: 1 });
+ClaimSchema.index({ redemption_status: 1 });
+
 export const Claim = mongoose.model<IClaim>('Claim', ClaimSchema);

@@ -1,38 +1,11 @@
-// import type{ Request, Response,NextFunction } from 'express';
-// import { Claim } from '../../../models/Claim.model.js';
-// import { Puzzle } from '../../../models/Puzzle.model.js';
-// import { Reward } from '../../../models/Reward.model.js';
 
-// export class AdminClaimController {
-//     static async viewAllClaims(req: Request, res: Response, next: NextFunction) {
-//         try {
-//             const claims = await Claim.find().sort({ claimed_at: -1 });
-
-//             const claimsWithDetails = await Promise.all(
-//                 claims.map(async (claim) => {
-//                     const puzzle = await Puzzle.findOne({ puzzle_id: claim.puzzle_id });
-//                     const reward = await Reward.findOne({ puzzle_id: claim.puzzle_id });
-//                     return {
-//                         ...claim.toObject(),
-//                         puzzle,
-//                         reward
-//                     };
-//                 })
-//             );
-
-//             res.json(claimsWithDetails);
-//         } catch (error:any) {
-//             // res.status(500).json({ message: 'Failed to fetch claims', error });
-//             next(error)
-//         }
-//     }
-// }
-
-// src/controllers/admin/claim.controller.ts
 import type { Request, Response, NextFunction } from 'express';
 import { Claim } from '../../../models/Claim.model.js';
 import { Puzzle } from '../../../models/Puzzle.model.js';
 import { Reward } from '../../../models/Reward.model.js';
+import { User } from '../../../models/user.model.js';
+// import { redisClient } from '../../../config/redis.js';
+// import { clearClaimsCache } from '../../../config/cache.js';
 
 export class AdminClaimController {
     static async viewAllClaims(req: Request, res: Response, next: NextFunction) {
@@ -50,6 +23,14 @@ export class AdminClaimController {
                 search,
                 reward_type
             } = req.query;
+
+            // const cacheKey = `claims:${page}:${limit}:${redemption_status || 'all'}:${reward_type || 'all'}:${from_date || 'none'}:${to_date || 'none'}:${search || 'none'}`;
+
+            // const cacheData = await redisClient.get(cacheKey);
+            // if (cacheData) {
+            //     console.log('⚡ CACHE HIT');
+            //     return res.json(JSON.parse(cacheData));
+            // }
 
             // Build filter object for Claim
             let claimFilter: any = {};
@@ -141,8 +122,7 @@ export class AdminClaimController {
                 Claim.countDocuments({ redemption_status: 'completed' }),
                 Claim.countDocuments({ redemption_status: 'failed' })
             ]);
-
-            res.json({
+            const response = {
                 success: true,
                 data: paginatedClaims,  // ✅ Fixed: using paginated data
                 pagination: {
@@ -168,7 +148,10 @@ export class AdminClaimController {
                     completed_claims: completedClaims,
                     failed_claims: failedClaims
                 }
-            });
+            }
+            // await redisClient.setEx(cacheKey, 60, JSON.stringify(response));
+            return res.json(response);
+
         } catch (error: any) {
             next(error);
         }
@@ -223,9 +206,9 @@ export class AdminClaimController {
                 });
             }
 
-            const puzzle = await Puzzle.findOneAndDelete({ puzzle_id: claim.puzzle_id });
-            const reward = await Reward.findOneAndDelete({ puzzle_id: claim.puzzle_id });
-
+            // const puzzle = await Puzzle.findOneAndDelete({ puzzle_id: claim.puzzle_id });
+            // const reward = await Reward.findOneAndDelete({ puzzle_id: claim.puzzle_id });
+            // await clearClaimsCache()
             res.json({
                 success: true,
                 message: "claim deleted successfully!",
@@ -261,7 +244,7 @@ export class AdminClaimController {
                     message: 'Claim not found'
                 });
             }
-
+            // await clearClaimsCache()
             res.json({
                 success: true,
                 message: 'Claim status updated successfully',

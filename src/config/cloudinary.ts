@@ -11,6 +11,8 @@ cloudinary.config({
 type ResourceType = "image" | "raw" | "video"|"auto";
 
 export default cloudinary;
+
+
 export const uploadToCloudinary = (
   fileBuffer: Buffer,
   resourceType: ResourceType = "image",
@@ -21,7 +23,7 @@ export const uploadToCloudinary = (
       .upload_stream(
         {
           resource_type: resourceType,
-          folder: "kaaya",
+          folder: "qrpuzzle",
           public_id: fileName as string, // ✅ IMPORTANT
         },
         (error, result) => {

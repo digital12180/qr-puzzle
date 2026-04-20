@@ -5,6 +5,8 @@ import { User } from '../../../models/user.model.js';
 import { Reward } from '../../../models/Reward.model.js';
 import { Puzzle } from '../../../models/Puzzle.model.js';
 import { Claim } from '../../../models/Claim.model.js';
+import { clearUserRewardsCache } from '../../../config/cache.js';
+import { redisClient } from '../../../config/redis.js';
 
 export class UserScanController {
     static async scanQRCode(req: Request, res: Response, next: NextFunction) {
@@ -118,7 +120,7 @@ export class UserScanController {
             //     { puzzle_id: puzzle_id },
             //     { status: 'solved' }
             // );
-
+            await clearUserRewardsCache(email);
             return res.status(200).json(new APIResponse(true, "Reward claimed successfully!", {
                 user: {
                     name: user.name,
@@ -144,6 +146,13 @@ export class UserScanController {
                     success: false,
                     message: "Email is required"
                 });
+            }
+            const cacheKey = `user-rewards:${email}`;
+            const cachedData = await redisClient.get(cacheKey);
+
+            if (cachedData) {
+                console.log('⚡ CACHE HIT');
+                return res.json(JSON.parse(cachedData));
             }
 
             // ✅ Get user
@@ -177,15 +186,15 @@ export class UserScanController {
             const puzzles = await Puzzle.find({
                 puzzle_id: { $in: puzzleIds }
             });
-            
 
-        // console.log(puzzleIds)
+
+            // console.log(puzzleIds)
             // ✅ Get claims (user specific)
             const claims = await Claim.find({
                 puzzle_id: { $in: puzzleIds },
                 user_device_id: "mobile" // 🔥 change if needed
             });
-           
+
             // ✅ Create maps
             const puzzleMap = new Map(
                 puzzles.map(p => [p.puzzle_id, p])
@@ -199,7 +208,7 @@ export class UserScanController {
             const finalRewards = orderedRewards.map((reward) => {
                 const puzzle = puzzleMap.get(reward.puzzle_id);
                 const claim = claimMap.get(reward.puzzle_id);
-                     
+
                 let remainingDays = null;
 
                 if (puzzle?.expires_at) {
@@ -241,13 +250,16 @@ export class UserScanController {
                 };
             });
 
-            // ✅ Final response
-            return res.status(200).json({
+            const response = {
                 success: true,
                 email: user.email,
                 total_rewards: finalRewards.length,
                 rewards: finalRewards
-            });
+            };
+
+            await redisClient.setEx(cacheKey, 120, JSON.stringify(response));
+
+            return res.json(response);
 
         } catch (error) {
             next(error);

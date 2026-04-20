@@ -39,7 +39,9 @@ export class AdminAuthController {
     async login(req: Request, res: Response, next: NextFunction) {
         try {
             const { email, password } = req.body;
-
+            if (!email || !password) {
+                return res.json({ message: "Email or Password required" });
+            }
             const admin = await Admin.findOne({ email: email });
 
             if (!admin) {
