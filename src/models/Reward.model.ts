@@ -12,7 +12,7 @@ export interface IReward extends Document {
 
 const RewardSchema = new Schema<IReward>({
     reward_id: { type: String, required: true, unique: true },
-    puzzle_id: { type: String, required: true, ref: 'Puzzle' },
+    puzzle_id: { type: String, required: true, unique: true },
     reward_type: {
         type: String,
         enum: ['food', 'voucher', 'merchandise', 'digital'],
@@ -22,5 +22,9 @@ const RewardSchema = new Schema<IReward>({
     terms: { type: String, default: '' },
     is_active: { type: Boolean, default: true }
 }, { timestamps: true });
+
+RewardSchema.index({ puzzle_id: 1 });
+RewardSchema.index({ reward_type: 1 });
+RewardSchema.index({is_active:1});
 
 export const Reward = mongoose.model<IReward>('Reward', RewardSchema);

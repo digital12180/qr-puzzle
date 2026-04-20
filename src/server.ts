@@ -4,6 +4,7 @@ import { connectDB } from "./config/database.js";
 import { logger } from "./utils/logger.js";
 
 import dotenv from "dotenv";
+// import { connectRedis } from "./config/redis.js";
 
 dotenv.config({ override: true });
 
@@ -20,7 +21,9 @@ const HOST = process.env.HOST || 'localhost';
 // ==================== DATABASE CONNECTION ====================
 const connectDatabase = async (): Promise<void> => {
     try {
+
         await connectDB();
+        // await connectRedis();
         console.log({ message: '✅ MongoDB connected successfully!' });
     } catch (error: any) {
         console.error({ Error: '❌ Database connection failed!' });

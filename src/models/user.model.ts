@@ -12,8 +12,9 @@ const UserSchema = new Schema<IUser>({
     rewards: [{
         type: String,
         default: []
-    }],
-
+    }]
 }, { timestamps: true });
+
+UserSchema.index({ email: 1 })
 
 export const User = mongoose.model<IUser>('User', UserSchema);

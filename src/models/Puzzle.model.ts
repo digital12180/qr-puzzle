@@ -21,8 +21,8 @@ const PuzzleSchema = new Schema<IPuzzle>({
     split_pieces_count: { type: Number, required: true, default: 4 },
     scrambled_image_url: { type: String, required: true },
     pieces_urls: [{ type: String, required: true }],  // ✅ ADD THIS
-    status: { 
-        type: String, 
+    status: {
+        type: String,
         enum: ['pending', 'delivered', 'solved', 'expired'],
         default: 'pending'
     },
@@ -31,4 +31,8 @@ const PuzzleSchema = new Schema<IPuzzle>({
     expires_at: { type: Date, required: true }
 });
 
+PuzzleSchema.index({ created_at: 1 });
+PuzzleSchema.index({ status: 1 });
+PuzzleSchema.index({ puzzle_id: 1 });
+PuzzleSchema.index({ reward_id: 1 });
 export const Puzzle = mongoose.model<IPuzzle>('Puzzle', PuzzleSchema);

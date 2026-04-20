@@ -1,16 +1,17 @@
-import type{ Request, Response,NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { Claim } from '../../../models/Claim.model.js';
 import { Puzzle } from '../../../models/Puzzle.model.js';
 import { Reward } from '../../../models/Reward.model.js';
 import { ValidationService } from '../../../services/validation.service.js';
 import { v4 as uuidv4 } from 'uuid';
+import { clearClaimsCache, clearPuzzleCache, clearRewardsCache } from '../../../config/cache.js';
 
 export class UserClaimController {
     static async claimReward(req: Request, res: Response, next: NextFunction) {
         try {
             const { puzzle_id, user_device_id } = req.body;
-            
-            const puzzle = await Puzzle.findOne({ puzzle_id:puzzle_id });
+
+            const puzzle = await Puzzle.findOne({ puzzle_id: puzzle_id });
             if (!puzzle) {
                 return res.status(404).json({ message: 'Puzzle not found' });
             }
@@ -27,13 +28,16 @@ export class UserClaimController {
                 redemption_status: 'completed'
             });
 
+
             await Puzzle.findOneAndUpdate(
                 { puzzle_id },
                 { status: 'solved' }
             );
 
-            const reward = await Reward.findOne({ puzzle_id:puzzle_id });
-
+            const reward = await Reward.findOne({ puzzle_id: puzzle_id });
+            await clearClaimsCache();
+            await clearRewardsCache();
+            await clearPuzzleCache();
             res.json({
                 success: true,
                 claim_id: claim._id,
@@ -49,13 +53,13 @@ export class UserClaimController {
     static async checkClaimStatus(req: Request, res: Response, next: NextFunction) {
         try {
             const { puzzle_id } = req.params;
-            
-            const claim = await Claim.findOne({ puzzle_id:puzzle_id });
-            
+
+            const claim = await Claim.findOne({ puzzle_id: puzzle_id });
+
             if (!claim) {
                 return res.json({ claimed: false });
             }
-
+         
             res.json({
                 claimed: true,
                 claim_id: claim._id,
